@@ -6,9 +6,9 @@ TMPDIR="$(mktemp -d)"
 curl -SsL https://api.github.com/repos/SoftFever/OrcaSlicer/releases > $TMPDIR/releases.json
 
 # Get the latest stable or pre-release that contains a matching AppImage
-url=$(jq -r '[.[] | select(.assets[].browser_download_url | test("Linux.*_Ubuntu2404_V.*AppImage$"))][0].assets[] | select(.browser_download_url | test("Linux.*_Ubuntu2404_V.*AppImage$")) | .browser_download_url' $TMPDIR/releases.json)
-name=$(jq -r '[.[] | select(.assets[].browser_download_url | test("Linux.*_Ubuntu2404_V.*AppImage$"))][0].assets[] | select(.browser_download_url | test("Linux.*_Ubuntu2404_V.*AppImage$")) | .name' $TMPDIR/releases.json)
-version=$(jq -r '[.[] | select(.assets[].browser_download_url | test("Linux.*_Ubuntu2404_V.*AppImage$"))][0].tag_name' $TMPDIR/releases.json)
+url=$(jq -r '[.[] | select(.assets[].browser_download_url | test("Linux.*_AppImage_V.*AppImage$"))][0].assets[] | select(.browser_download_url | test("Linux.*_AppImage_V.*AppImage$")) | .browser_download_url' $TMPDIR/releases.json)
+name=$(jq -r '[.[] | select(.assets[].browser_download_url | test("Linux.*_AppImage_V.*AppImage$"))][0].assets[] | select(.browser_download_url | test("Linux.*_AppImage_V.*AppImage$")) | .name' $TMPDIR/releases.json)
+version=$(jq -r '[.[] | select(.assets[].browser_download_url | test("Linux.*_AppImage_V.*AppImage$"))][0].tag_name' $TMPDIR/releases.json)
 
 if [ $# -ne 1 ]; then
   echo "Wrong number of params"
