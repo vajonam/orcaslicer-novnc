@@ -1,16 +1,28 @@
-# Orcaslicer noVNC Docker Container
+# Orcaslicer NVIDIA HW accelerated noVNC - Docker Image
 
 ## Overview
 
-This container is designed exclusively for NVIDIA hardware (tested with NVIDIA) to run OrcaSlicer in a web browser with GPU-accelerated OpenGL. It is a fork of the prusaslicer-novnc project (https://github.com/helfrichmichael/prusaslicer-novnc), modified to replace PrusaSlicer with OrcaSlicer.
+This container is targetted toward NVIDIA hardware (tested with NVIDIA) to run OrcaSlicer in a web browser with GPU-accelerated OpenGL. It is a fork of the prusaslicer-novnc project (https://github.com/helfrichmichael/prusaslicer-novnc), modified to replace PrusaSlicer with OrcaSlicer.
+
+#### NVIDIA GPU specifc use case
+
+There is already a [linuxserver.io](https://github.com/linuxserver/docker-orcaslicer) repo, but I couldn't get hardware-accelerated GPU rendering working. I had already invested the time into this, and didn't feel like doing it again. It seems pretty niche at the moment. So I will maintain this as long as I use Orcaslicer and they maintain their AppImage distribution. I may end up discontinuing mainttaing this repo. 
 
 ## How to use
 
 ### Docker
-To run this image, you can run the following command: `docker run --detach --volume=orcaslicer-novnc-data:/configs/ --volume=orcaslicer-novnc-prints:/prints/ -p 8080:8080 -e SSL_CERT_FILE="/etc/ssl/certs/ca-certificates.crt" 
---name=orcaslicer-novnc vajonam/orcaslicer-novnc`
+To run this image, you can run the following command: 
+```
+docker run --detach \
+--volume=orcaslicer-novnc-data:/configs/ \
+--volume=orcaslicer-novnc-prints:/prints/ \
+-p 8080:8080 \
+-e SSL_CERT_FILE="/etc/ssl/certs/ca-certificates.crt" \
+--name=orcaslicer-novnc \
+ghcr.io/vajonam/orcaslicer-novnc:latest
+```
 
-This will bind `/configs/` in the container to a local volume on my machine named `orcaslicer-novnc-data`. Additionally it will bind `/prints/` in the container to `orcaslicer-novnc-prints` locally on my machine, it will bind port `8080` to `8080`, and finally, it will provide an environment variable to keep orcaslicer happy by providing an `SSL_CERT_FILE`.
+This will bind `/configs/` in the container to a local volume on my machine named `orcaslicer-novnc-data`. Additionally it will bind `/prints/` in the container to `orcaslicer-novnc-prints` locally on your machine, it will bind port `8080` to `8080`, and finally, it will provide an environment variable to keep orcaslicer happy by providing an `SSL_CERT_FILE`.
 
 ### Docker Compose
 To use the pre-built image, simply clone this repository or copy `docker-compose.yml` and run `docker compose up -d`.

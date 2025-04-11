@@ -2,7 +2,7 @@ name: Tag latest
 
 on:
   schedule:
-    - cron: "0 0 * * *" # Every night at Midnight.=
+    - cron: "0 1 * * *" # Every night at 2.=
   workflow_dispatch:
   
 jobs:
