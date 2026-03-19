@@ -2,6 +2,10 @@
 set -e
 rm -f /tmp/.X*-lock
 rm -f /tmp/.X11-unix/X*
+# TurboVNC/Xvnc expects this socket dir to be root-owned with sticky bit.
+mkdir -p /tmp/.X11-unix
+chown root:root /tmp/.X11-unix
+chmod 1777 /tmp/.X11-unix
 export DISPLAY=${DISPLAY:-:0}
 DISPLAY_NUMBER=$(echo $DISPLAY | cut -d: -f2)
 export NOVNC_PORT=${NOVNC_PORT:-8080}
@@ -24,6 +28,20 @@ fi
 
 export SUPD_LOGLEVEL="${SUPD_LOGLEVEL:-TRACE}"
 export VGL_DISPLAY="${VGL_DISPLAY:-egl}"
+
+# Ensure GLVND can discover NVIDIA EGL in containerized runtime environments.
+# Some setups inject NVIDIA libs but omit the vendor JSON, which causes Mesa llvmpipe fallback.
+mkdir -p /usr/share/glvnd/egl_vendor.d
+if [ -e /usr/lib/x86_64-linux-gnu/libEGL_nvidia.so.0 ] && [ ! -f /usr/share/glvnd/egl_vendor.d/10_nvidia.json ]; then
+  cat > /usr/share/glvnd/egl_vendor.d/10_nvidia.json <<'EOF'
+{
+  "file_format_version": "1.0.0",
+  "ICD": {
+    "library_path": "libEGL_nvidia.so.0"
+  }
+}
+EOF
+fi
 
 # Set defaults if environment variables are not set
 PUID=${PUID:-1000}
