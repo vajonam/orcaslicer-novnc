@@ -7,6 +7,8 @@ services:
       args:
         CUDA_IMAGE_TAG: ${CUDA_IMAGE_TAG:-13.0.1-runtime-ubuntu24.04}
         ORCASLICER_VERSION: ${ORCASLICER_VERSION:-latest}
+        MEDIA_PROFILE: ${MEDIA_PROFILE:-minimal}
+        DEBUG_TOOLS: ${DEBUG_TOOLS:-false}
     environment:
       - SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
       - DISPLAY=:0

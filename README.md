@@ -31,6 +31,12 @@ To pin a specific OrcaSlicer release while building:
 ORCASLICER_VERSION=v2.3.1 docker compose -f docker-compose.build.yml up -d --build
 ```
 
+To build with broad codec support and extra debug desktop tools:
+
+```bash
+MEDIA_PROFILE=broad DEBUG_TOOLS=true docker compose -f docker-compose.build.yml up -d --build
+```
+
 ## GPU Acceleration
 
 Set `ENABLEHWGPU=true` to run OrcaSlicer through `vglrun`.
@@ -63,6 +69,8 @@ Expected process (when launched): `/slic3r/squashfs-root/bin/orca-slicer`
 - `ORCASLICER_VERSION=latest`
 - `VIRTUALGL_VERSION=3.1.1-20240228`
 - `TURBOVNC_VERSION=3.1.1-20240127`
+- `MEDIA_PROFILE=minimal` (`minimal` or `broad`)
+- `DEBUG_TOOLS=false` (`true` adds `dbus-x11`, `xdg-utils`, `xterm`)
 
 ## Build/Cache Notes
 
