@@ -1,20 +1,40 @@
 #!/bin/bash
 
+set -euo pipefail
+
 TMPDIR="$(mktemp -d)"
+trap 'rm -rf "${TMPDIR}"' EXIT
+
+requested_version="${2:-latest}"
 
 # Fetch all releases (both latest stable and pre-releases)
-curl -SsL https://api.github.com/repos/SoftFever/OrcaSlicer/releases > $TMPDIR/releases.json
+curl -SsL https://api.github.com/repos/OrcaSlicer/OrcaSlicer/releases > "${TMPDIR}/releases.json"
 
-# Get the latest stable or pre-release that contains a matching AppImage
-url=$(jq -r '[.[] | select(.assets[].browser_download_url | test("Linux.*_AppImage_V.*AppImage$"))][0].assets[] | select(.browser_download_url | test("Linux.*_AppImage_V.*AppImage$")) | .browser_download_url' $TMPDIR/releases.json)
-name=$(jq -r '[.[] | select(.assets[].browser_download_url | test("Linux.*_AppImage_V.*AppImage$"))][0].assets[] | select(.browser_download_url | test("Linux.*_AppImage_V.*AppImage$")) | .name' $TMPDIR/releases.json)
-version=$(jq -r '[.[] | select(.assets[].browser_download_url | test("Linux.*_AppImage_V.*AppImage$"))][0].tag_name' $TMPDIR/releases.json)
+appimage_asset_filter='((.name // "") | test("(?i)\\.AppImage$")) or ((.browser_download_url // "") | test("(?i)\\.AppImage$"))'
+stable_release_filter=".[] | select((.draft | not) and (.prerelease | not)) | select(any(.assets[]?; ${appimage_asset_filter}))"
+release_filter=".[] | select(.draft | not) | select(any(.assets[]?; ${appimage_asset_filter}))"
+asset_selector='([.assets[] | select('"${appimage_asset_filter}"')] | .[0])'
 
-if [ $# -ne 1 ]; then
+if [ "${requested_version}" = "latest" ]; then
+  selector="([${stable_release_filter}][0] // [${release_filter}][0])"
+else
+  selector="[${release_filter} | select(.tag_name == \$tag)][0]"
+fi
+
+url=$(jq -r --arg tag "${requested_version}" "${selector} | ${asset_selector}.browser_download_url" "${TMPDIR}/releases.json")
+name=$(jq -r --arg tag "${requested_version}" "${selector} | ${asset_selector}.name" "${TMPDIR}/releases.json")
+version=$(jq -r --arg tag "${requested_version}" "${selector}.tag_name" "${TMPDIR}/releases.json")
+
+if [ $# -lt 1 ] || [ $# -gt 2 ]; then
   echo "Wrong number of params"
   exit 1
 else
   request=$1
+fi
+
+if [ "${url}" = "null" ] || [ "${name}" = "null" ] || [ "${version}" = "null" ]; then
+  echo "Unable to find OrcaSlicer AppImage release for version '${requested_version}'" >&2
+  exit 1
 fi
 
 case $request in
@@ -35,6 +55,3 @@ case $request in
     echo "Unknown request"
     ;;
 esac
-
-rm -rf $TMPDIR
-exit 0

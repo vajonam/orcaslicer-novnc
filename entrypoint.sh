@@ -28,6 +28,7 @@ fi
 
 export SUPD_LOGLEVEL="${SUPD_LOGLEVEL:-TRACE}"
 export VGL_DISPLAY="${VGL_DISPLAY:-egl}"
+export ORCA_GTK_THEME="${ORCA_GTK_THEME:-Adwaita:dark}"
 
 # Ensure GLVND can discover NVIDIA EGL in containerized runtime environments.
 # Some setups inject NVIDIA libs but omit the vendor JSON, which causes Mesa llvmpipe fallback.
@@ -59,5 +60,38 @@ if [ "$(id -u slic3r)" != "$PUID" ]; then
   usermod -u "$PUID" slic3r || { echo "Failed to update user ID"; exit 1; }
 fi
 
-# fix perms and launch supervisor with the above environment variables
-chown -R slic3r:slic3r /slic3r/ /home/slic3r/ /configs/ /prints/ /dev/stdout && exec gosu slic3r supervisord -e $SUPD_LOGLEVEL
+target_owner="${PUID}:${PGID}"
+recursive_mount_chown="${RECURSIVE_MOUNT_CHOWN:-false}"
+
+fix_ownership() {
+  local path="$1"
+  local recursive="$2"
+
+  if [ ! -e "${path}" ]; then
+    return
+  fi
+
+  local current_owner
+  current_owner="$(stat -c '%u:%g' "${path}" 2>/dev/null || true)"
+
+  if [ "${recursive}" = "true" ] && [ "${current_owner}" != "${target_owner}" ]; then
+    chown -R "${target_owner}" "${path}"
+  elif [ "${current_owner}" != "${target_owner}" ]; then
+    chown "${target_owner}" "${path}"
+  fi
+}
+
+# Always fix image-owned trees recursively.
+fix_ownership /slic3r true
+fix_ownership /home/slic3r true
+
+# Mounted paths can be large; avoid recursive chown by default for faster startups.
+if [ "${recursive_mount_chown}" = "true" ]; then
+  fix_ownership /configs true
+  fix_ownership /prints true
+else
+  fix_ownership /configs false
+  fix_ownership /prints false
+fi
+
+exec gosu slic3r supervisord -e "$SUPD_LOGLEVEL"

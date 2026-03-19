@@ -1,0 +1,8 @@
+.git
+.github
+data
+prints
+*.log
+*.tmp
+*.swp
+.DS_Store

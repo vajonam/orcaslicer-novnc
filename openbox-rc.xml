@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openbox_config xmlns="http://openbox.org/3.4/rc">
+  <applications>
+    <!-- Keep only app-side title bar (avoid double decorations in OrcaSlicer). -->
+    <application class="orca-slicer">
+      <decor>no</decor>
+    </application>
+    <application class="OrcaSlicer">
+      <decor>no</decor>
+    </application>
+    <application name="orca-slicer">
+      <decor>no</decor>
+    </application>
+    <application name="OrcaSlicer">
+      <decor>no</decor>
+    </application>
+  </applications>
+</openbox_config>
