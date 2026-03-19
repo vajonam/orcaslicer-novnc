@@ -1,36 +1,34 @@
 #!/bin/bash
-set -eu
+set -euo pipefail
 
-# ** start of configurable variables **
-GH_ACTION="y"
-# ** end of configurable variables **
+cd "$(dirname "$0")"
 
-# Get the latest tagged version (from your helper script)
-LATEST_VERSION=$(./get_latest_orcalslicer_release.sh version)
+echo "Checking latest stable OrcaSlicer release..."
+latest_version="$(./get_latest_orcalslicer_release.sh version latest)"
 
-if [[ -z "${LATEST_VERSION}" ]]; then
-  echo "Could not determine the latest version."
+if [[ -z "${latest_version}" ]]; then
+  echo "Could not determine latest stable OrcaSlicer version."
   exit 1
 fi
 
-# Ensure we are running in the repository directory
-cd "$(dirname "$0")";
+if [[ "${latest_version}" =~ ^v ]]; then
+  normalized_tag="${latest_version}"
+else
+  normalized_tag="v${latest_version}"
+fi
 
-# Fetch tags from the remote repository so that our local tag list is updated
-git fetch --tags
+echo "Latest stable release resolved to: ${latest_version} (repo tag: ${normalized_tag})"
 
-# Check if the tag already exists
-if git rev-parse "$LATEST_VERSION" >/dev/null 2>&1; then
-  echo "Tag ${LATEST_VERSION} already exists in remote. No update needed."
+git fetch --tags origin
+
+if git show-ref --tags --verify --quiet "refs/tags/${normalized_tag}"; then
+  echo "No update: tag ${normalized_tag} already exists."
   exit 0
 fi
 
-echo "Update needed. Creating tag ${LATEST_VERSION}..."
-git tag "${LATEST_VERSION}"
+echo "New stable release found. Creating annotated tag ${normalized_tag} on current HEAD..."
+git tag -a "${normalized_tag}" -m "OrcaSlicer container release ${normalized_tag}"
 
-if [[ "$GH_ACTION" != "" ]]; then
-  echo "${LATEST_VERSION}" > "${GITHUB_WORKSPACE}/VERSION"
-  git push https://$GITHUB_ACTOR:$GITHUB_TOKEN@github.com/$GITHUB_REPOSITORY --tags
-else
-  git push --tags
-fi
+echo "Pushing tag ${normalized_tag}..."
+git push origin "${normalized_tag}"
+echo "Tag push complete."

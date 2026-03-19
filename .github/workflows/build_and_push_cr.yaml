@@ -1,15 +1,10 @@
 name: Build and Push Docker Image
 
 on:
-  workflow_dispatch: 
+  workflow_dispatch:
   push:
-    branches:
-      - orcaslicer
     tags:
       - v*
-    paths-ignore:
-      - '**/*.md'
-      - '.github/*' 
 
 jobs:
   build:
@@ -22,10 +17,16 @@ jobs:
         with:
           fetch-depth: 0  # Ensure full history for tags
 
-      # Get the latest tag
-      - name: Get latest tag
-        id: get_tag
-        run: echo "TAG_NAME=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
+      # Resolve image tag name (use pushed tag when event is tag-triggered)
+      - name: Resolve tag name
+        run: |
+          if [ "${GITHUB_REF_TYPE:-}" = "tag" ]; then
+            echo "TAG_NAME=${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
+          else
+            TAG_NAME="$(git describe --tags --abbrev=0 2>/dev/null || echo manual-${GITHUB_SHA::7})"
+            echo "TAG_NAME=${TAG_NAME}" >> "$GITHUB_ENV"
+          fi
+          echo "Building image tags: latest and ${TAG_NAME}"
 
       # Set up Docker Buildx
       - name: Set up Docker Buildx
@@ -44,7 +45,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          file: ./Dockerfile  # Adjust path if your Dockerfile is in a different location
+          file: ./Dockerfile
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/orcaslicer-novnc:latest

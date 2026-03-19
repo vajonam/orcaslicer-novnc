@@ -2,17 +2,23 @@ name: Tag latest
 
 on:
   schedule:
-    - cron: "0 1 * * *" # Every night at 2.=
+    - cron: "0 1 * * *" # Daily check
   workflow_dispatch:
-  
+
+permissions:
+  contents: write
+
 jobs:
   tag:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: sergeysova/jq-action@v2 # Needed for parsing the JSON of the Prusaslicer releases.
-      - name: checkout repo content
-        uses: actions/checkout@v2 # Checkout the repository content to GitHub's runner.
+      - name: Checkout repository (orcaslicer branch)
+        uses: actions/checkout@v4
+        with:
+          ref: orcaslicer
+          fetch-depth: 0
+
       - name: Tag the latest Orcaslicer if available
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
