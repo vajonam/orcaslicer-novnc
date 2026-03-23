@@ -2,6 +2,11 @@ name: Build and Push Docker Image
 
 on:
   workflow_dispatch:
+    inputs:
+      tag_name:
+        description: Tag to build and push
+        required: false
+        type: string
   push:
     tags:
       - v*
@@ -20,7 +25,9 @@ jobs:
       # Resolve image tag name (use pushed tag when event is tag-triggered)
       - name: Resolve tag name
         run: |
-          if [ "${GITHUB_REF_TYPE:-}" = "tag" ]; then
+          if [ -n "${{ github.event.inputs.tag_name }}" ]; then
+            echo "TAG_NAME=${{ github.event.inputs.tag_name }}" >> "$GITHUB_ENV"
+          elif [ "${GITHUB_REF_TYPE:-}" = "tag" ]; then
             echo "TAG_NAME=${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
           else
             TAG_NAME="$(git describe --tags --abbrev=0 2>/dev/null || echo manual-${GITHUB_SHA::7})"

@@ -90,6 +90,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
       libglut3.12 \
       libgtk-3-0 \
       libgtk2.0-0 \
+      libmspack0t64 \
       libnvidia-egl-gbm1 \
       libopengl0 \
       libpam0g \

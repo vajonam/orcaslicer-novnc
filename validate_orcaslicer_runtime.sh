@@ -22,7 +22,7 @@ for target in "${targets[@]}"; do
     continue
   fi
 
-  ldd "${target}" 2>/dev/null | awk '/not found/ { print FILENAME ": " $1 " => " $3 }' FILENAME="${target}" >> "${missing}" || true
+  ldd "${target}" 2>/dev/null | awk -v target="${target}" '/not found/ { print target ": " $1 " => " $3 }' >> "${missing}" || true
 done
 
 if [ -s "${missing}" ]; then

@@ -3,6 +3,12 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
+set_github_output() {
+  if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+    printf '%s=%s\n' "$1" "$2" >> "${GITHUB_OUTPUT}"
+  fi
+}
+
 echo "Checking latest stable OrcaSlicer release..."
 latest_version="$(./get_latest_orcalslicer_release.sh version latest)"
 
@@ -23,6 +29,8 @@ git fetch --tags origin
 
 if git show-ref --tags --verify --quiet "refs/tags/${normalized_tag}"; then
   echo "No update: tag ${normalized_tag} already exists."
+  set_github_output "tag_created" "false"
+  set_github_output "tag_name" "${normalized_tag}"
   exit 0
 fi
 
@@ -43,3 +51,5 @@ git tag -a "${normalized_tag}" -m "OrcaSlicer container release ${normalized_tag
 echo "Pushing tag ${normalized_tag}..."
 git push origin "${normalized_tag}"
 echo "Tag push complete."
+set_github_output "tag_created" "true"
+set_github_output "tag_name" "${normalized_tag}"
