@@ -29,6 +29,37 @@ fi
 export SUPD_LOGLEVEL="${SUPD_LOGLEVEL:-TRACE}"
 export VGL_DISPLAY="${VGL_DISPLAY:-egl}"
 export ORCA_GTK_THEME="${ORCA_GTK_THEME:-Adwaita:dark}"
+export ORCA_COMPAT_PROFILE="${ORCA_COMPAT_PROFILE:-}"
+export ORCA_XDG_SESSION_TYPE="${ORCA_XDG_SESSION_TYPE:-}"
+export ORCA_XDG_CURRENT_DESKTOP="${ORCA_XDG_CURRENT_DESKTOP:-}"
+export ORCA_XDG_SESSION_DESKTOP="${ORCA_XDG_SESSION_DESKTOP:-}"
+export ORCA_GTK_CSD="${ORCA_GTK_CSD:-}"
+export ORCA_GDK_DISABLE="${ORCA_GDK_DISABLE:-}"
+export ORCA_DBUS_SESSION_BUS_ADDRESS="${ORCA_DBUS_SESSION_BUS_ADDRESS:-}"
+
+apply_orca_compat_profile() {
+  case "${ORCA_COMPAT_PROFILE}" in
+    ""|none)
+      ;;
+    x11-hints)
+      : "${ORCA_XDG_SESSION_TYPE:=x11}"
+      : "${ORCA_XDG_CURRENT_DESKTOP:=Openbox}"
+      : "${ORCA_XDG_SESSION_DESKTOP:=Openbox}"
+      ;;
+    x11-hints-dbus)
+      : "${ORCA_XDG_SESSION_TYPE:=x11}"
+      : "${ORCA_XDG_CURRENT_DESKTOP:=Openbox}"
+      : "${ORCA_XDG_SESSION_DESKTOP:=Openbox}"
+      ;;
+    *)
+      echo "Unsupported ORCA_COMPAT_PROFILE: ${ORCA_COMPAT_PROFILE}" >&2
+      echo "Supported values: none, x11-hints, x11-hints-dbus" >&2
+      exit 1
+      ;;
+  esac
+}
+
+apply_orca_compat_profile
 
 # Ensure GLVND can discover NVIDIA EGL in containerized runtime environments.
 # Some setups inject NVIDIA libs but omit the vendor JSON, which causes Mesa llvmpipe fallback.
@@ -49,6 +80,9 @@ PUID=${PUID:-1000}
 PGID=${PGID:-1000}
 
 echo "Starting container with UID: $PUID and GID: $PGID"
+if [ -n "${ORCA_COMPAT_PROFILE}" ] && [ "${ORCA_COMPAT_PROFILE}" != "none" ]; then
+  echo "Applying Orca compatibility profile: ${ORCA_COMPAT_PROFILE}"
+fi
 
 # Update group ID for slic3r group
 if [ "$(id -g slic3r)" != "$PGID" ]; then
@@ -61,7 +95,7 @@ if [ "$(id -u slic3r)" != "$PUID" ]; then
 fi
 
 target_owner="${PUID}:${PGID}"
-recursive_mount_chown="${RECURSIVE_MOUNT_CHOWN:-false}"
+recursive_chown="${RECURSIVE_CHOWN:-false}"
 
 fix_ownership() {
   local path="$1"
@@ -81,15 +115,16 @@ fix_ownership() {
   fi
 }
 
-# Always fix image-owned trees recursively.
-fix_ownership /slic3r true
-fix_ownership /home/slic3r true
-
-# Mounted paths can be large; avoid recursive chown by default for faster startups.
-if [ "${recursive_mount_chown}" = "true" ]; then
+# Avoid recursive chown by default for faster startups. Enable it explicitly
+# when migrating ownership across existing trees is required.
+if [ "${recursive_chown}" = "true" ]; then
+  fix_ownership /slic3r true
+  fix_ownership /home/slic3r true
   fix_ownership /configs true
   fix_ownership /prints true
 else
+  fix_ownership /slic3r false
+  fix_ownership /home/slic3r false
   fix_ownership /configs false
   fix_ownership /prints false
 fi

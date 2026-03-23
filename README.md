@@ -37,6 +37,30 @@ To build with broad codec support and extra debug desktop tools:
 MEDIA_PROFILE=broad DEBUG_TOOLS=true docker compose -f docker-compose.build.yml up -d --build
 ```
 
+For local-only OrcaSlicer `v2.3.2` compatibility testing under noVNC, keep defaults unchanged and inject env vars only for the run you want to test:
+
+```bash
+ORCASLICER_VERSION=v2.3.2 docker compose -f docker-compose.build.yml up -d --build
+```
+
+Baseline run with no compatibility profile:
+
+```bash
+docker compose -f docker-compose.build.yml up -d
+```
+
+Profile 1: X11/Openbox session hints only:
+
+```bash
+ORCA_COMPAT_PROFILE=x11-hints docker compose -f docker-compose.build.yml up -d
+```
+
+Profile 2: X11/Openbox hints plus optional local D-Bus passthrough:
+
+```bash
+ORCA_COMPAT_PROFILE=x11-hints-dbus ORCA_DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS:-}" docker compose -f docker-compose.build.yml up -d
+```
+
 ## GPU Acceleration
 
 Set `ENABLEHWGPU=true` to run OrcaSlicer through `vglrun`.
@@ -56,12 +80,20 @@ Expected process (when launched): `/slic3r/squashfs-root/bin/orca-slicer`
 - `PGID=1000`
 - `SUPD_LOGLEVEL=INFO`
 - `ENABLEHWGPU=false`
+- `RECURSIVE_CHOWN=false` (`true` recursively fixes ownership on `/slic3r`, `/home/slic3r`, `/configs`, and `/prints` at startup)
 - `VGL_DISPLAY=egl`
 - `NOVNC_PORT=8080`
 - `VNC_PORT=5900`
 - `VNC_RESOLUTION=1280x800`
 - `VNC_PASSWORD=`
 - `ORCA_GTK_THEME=Adwaita:dark` (default dark theme, override if needed)
+- `ORCA_COMPAT_PROFILE=` (`none`, `x11-hints`, or `x11-hints-dbus`; optional local testing harness)
+- `ORCA_XDG_SESSION_TYPE=`
+- `ORCA_XDG_CURRENT_DESKTOP=`
+- `ORCA_XDG_SESSION_DESKTOP=`
+- `ORCA_GTK_CSD=`
+- `ORCA_GDK_DISABLE=`
+- `ORCA_DBUS_SESSION_BUS_ADDRESS=`
 
 ## Build Arguments
 
