@@ -26,6 +26,17 @@ if git show-ref --tags --verify --quiet "refs/tags/${normalized_tag}"; then
   exit 0
 fi
 
+git_user_name="$(git config user.name || true)"
+git_user_email="$(git config user.email || true)"
+
+if [[ -z "${git_user_name}" || -z "${git_user_email}" ]]; then
+  fallback_name="${GIT_TAGGER_NAME:-GitHub Actions}"
+  fallback_email="${GIT_TAGGER_EMAIL:-github-actions[bot]@users.noreply.github.com}"
+  echo "Git committer identity is not configured. Using ${fallback_name} <${fallback_email}> for tag creation."
+  git config user.name "${fallback_name}"
+  git config user.email "${fallback_email}"
+fi
+
 echo "New stable release found. Creating annotated tag ${normalized_tag} on current HEAD..."
 git tag -a "${normalized_tag}" -m "OrcaSlicer container release ${normalized_tag}"
 

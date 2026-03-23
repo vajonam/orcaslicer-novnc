@@ -22,6 +22,8 @@ jobs:
       - name: Tag the latest Orcaslicer if available
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_TAGGER_NAME: GitHub Actions
+          GIT_TAGGER_EMAIL: github-actions[bot]@users.noreply.github.com
         run: |
           chmod +x ./tag_latest_orcaslicer.sh
           ./tag_latest_orcaslicer.sh
