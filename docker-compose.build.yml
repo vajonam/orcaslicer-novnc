@@ -13,6 +13,7 @@ services:
       - SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
       - DISPLAY=:0
       - VGL_DISPLAY=egl
+      - ORCA_COMPAT_PROFILE=x11-hints
       - ENABLEHWGPU=true
     volumes:
       - ./prints:/prints/

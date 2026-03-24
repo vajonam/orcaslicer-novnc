@@ -55,25 +55,6 @@ COPY --from=vnc-fetch /tmp/turbovnc.deb /tmp/turbovnc.deb
 COPY --from=orca-fetch /slic3r/squashfs-root /slic3r/squashfs-root
 COPY validate_orcaslicer_runtime.sh /slic3r/validate_orcaslicer_runtime.sh
 
-COPY entrypoint.sh /entrypoint.sh
-COPY supervisord.conf /etc/supervisord.conf
-COPY xstartup.sh /etc/turbovnc-xstartup.sh
-COPY openbox-rc.xml /home/slic3r/.config/openbox/rc.xml
-COPY vncresize.html /usr/share/novnc/index.html
-COPY icons/prusaslicer-16x16.png /usr/share/novnc/app/images/icons/novnc-16x16.png
-COPY icons/prusaslicer-24x24.png /usr/share/novnc/app/images/icons/novnc-24x24.png
-COPY icons/prusaslicer-32x32.png /usr/share/novnc/app/images/icons/novnc-32x32.png
-COPY icons/prusaslicer-48x48.png /usr/share/novnc/app/images/icons/novnc-48x48.png
-COPY icons/prusaslicer-60x60.png /usr/share/novnc/app/images/icons/novnc-60x60.png
-COPY icons/prusaslicer-64x64.png /usr/share/novnc/app/images/icons/novnc-64x64.png
-COPY icons/prusaslicer-72x72.png /usr/share/novnc/app/images/icons/novnc-72x72.png
-COPY icons/prusaslicer-76x76.png /usr/share/novnc/app/images/icons/novnc-76x76.png
-COPY icons/prusaslicer-96x96.png /usr/share/novnc/app/images/icons/novnc-96x96.png
-COPY icons/prusaslicer-120x120.png /usr/share/novnc/app/images/icons/novnc-120x120.png
-COPY icons/prusaslicer-144x144.png /usr/share/novnc/app/images/icons/novnc-144x144.png
-COPY icons/prusaslicer-152x152.png /usr/share/novnc/app/images/icons/novnc-152x152.png
-COPY icons/prusaslicer-192x192.png /usr/share/novnc/app/images/icons/novnc-192x192.png
-
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
     apt-get update \
@@ -151,12 +132,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     && locale-gen en_US.UTF-8 \
     && if ! getent group slic3r >/dev/null; then groupadd --system slic3r; fi \
     && if ! id -u slic3r >/dev/null 2>&1; then useradd --system -g slic3r --create-home --home-dir /home/slic3r slic3r; fi \
-    && mkdir -p /slic3r /configs/.config/openbox /configs/.local /prints \
-    && ln -sfn /configs/.config /home/slic3r/.config \
-    && echo 'XDG_DOWNLOAD_DIR="/prints/"' >> /configs/.config/user-dirs.dirs \
-    && echo "file:///prints prints" >> /home/slic3r/.gtk-bookmarks \
+    && mkdir -p /slic3r /home/slic3r/.config/OrcaSlicer /configs/.local /prints \
     && chmod +x /slic3r/validate_orcaslicer_runtime.sh \
-    && chmod +x /entrypoint.sh /etc/turbovnc-xstartup.sh \
     && chown -R slic3r:slic3r /slic3r /home/slic3r /configs /prints \
     && /slic3r/validate_orcaslicer_runtime.sh /slic3r/squashfs-root \
     && openssl req -x509 -nodes -newkey rsa:2048 \
@@ -165,6 +142,26 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
       -days 365 \
       -subj "/C=US/ST=Denial/L=Springfield/O=Dis/CN=localhost" \
     && rm -rf /var/lib/apt/lists/*
+
+COPY entrypoint.sh /entrypoint.sh
+COPY supervisord.conf /etc/supervisord.conf
+COPY xstartup.sh /etc/turbovnc-xstartup.sh
+COPY vncresize.html /usr/share/novnc/index.html
+COPY icons/prusaslicer-16x16.png /usr/share/novnc/app/images/icons/novnc-16x16.png
+COPY icons/prusaslicer-24x24.png /usr/share/novnc/app/images/icons/novnc-24x24.png
+COPY icons/prusaslicer-32x32.png /usr/share/novnc/app/images/icons/novnc-32x32.png
+COPY icons/prusaslicer-48x48.png /usr/share/novnc/app/images/icons/novnc-48x48.png
+COPY icons/prusaslicer-60x60.png /usr/share/novnc/app/images/icons/novnc-60x60.png
+COPY icons/prusaslicer-64x64.png /usr/share/novnc/app/images/icons/novnc-64x64.png
+COPY icons/prusaslicer-72x72.png /usr/share/novnc/app/images/icons/novnc-72x72.png
+COPY icons/prusaslicer-76x76.png /usr/share/novnc/app/images/icons/novnc-76x76.png
+COPY icons/prusaslicer-96x96.png /usr/share/novnc/app/images/icons/novnc-96x96.png
+COPY icons/prusaslicer-120x120.png /usr/share/novnc/app/images/icons/novnc-120x120.png
+COPY icons/prusaslicer-144x144.png /usr/share/novnc/app/images/icons/novnc-144x144.png
+COPY icons/prusaslicer-152x152.png /usr/share/novnc/app/images/icons/novnc-152x152.png
+COPY icons/prusaslicer-192x192.png /usr/share/novnc/app/images/icons/novnc-192x192.png
+
+RUN chmod +x /entrypoint.sh /etc/turbovnc-xstartup.sh
 
 ENV PATH="${PATH}:/opt/VirtualGL/bin:/opt/TurboVNC/bin"
 

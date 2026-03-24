@@ -43,10 +43,16 @@ For local-only OrcaSlicer `v2.3.2` compatibility testing under noVNC, keep defau
 ORCASLICER_VERSION=v2.3.2 docker compose -f docker-compose.build.yml up -d --build
 ```
 
-Baseline run with no compatibility profile:
+Default run with the recommended X11/Openbox session hints:
 
 ```bash
 docker compose -f docker-compose.build.yml up -d
+```
+
+Explicitly force no compatibility profile:
+
+```bash
+ORCA_COMPAT_PROFILE=none docker compose -f docker-compose.build.yml up -d
 ```
 
 Profile 1: X11/Openbox session hints only:
@@ -87,7 +93,7 @@ Expected process (when launched): `/slic3r/squashfs-root/bin/orca-slicer`
 - `VNC_RESOLUTION=1280x800`
 - `VNC_PASSWORD=`
 - `ORCA_GTK_THEME=Adwaita:dark` (default dark theme, override if needed)
-- `ORCA_COMPAT_PROFILE=` (`none`, `x11-hints`, or `x11-hints-dbus`; optional local testing harness)
+- `ORCA_COMPAT_PROFILE=x11-hints` (`none`, `x11-hints`, or `x11-hints-dbus`; defaults to the recommended X11/Openbox hints)
 - `ORCA_XDG_SESSION_TYPE=`
 - `ORCA_XDG_CURRENT_DESKTOP=`
 - `ORCA_XDG_SESSION_DESKTOP=`
@@ -117,7 +123,7 @@ The Dockerfile is optimized for faster rebuilds:
 
 - Openbox is used only for focus/placement.
 - OrcaSlicer runs as the main app process under `supervisord`.
-- Openbox app rules disable Openbox decoration for Orca so the app keeps a single titlebar/decorator.
+- Openbox uses its default configuration; no custom home-directory `.config` tree is seeded by the image.
 
 ## Links
 
